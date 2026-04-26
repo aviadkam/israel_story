@@ -751,6 +751,40 @@ header{height:52px;display:flex;align-items:center;gap:18px;padding:0 24px;
   color:rgba(255,255,255,.35);border-top:1px solid var(--border);padding-top:10px;font-style:italic}
 .body-he strong,.body-en strong{color:#fff;font-style:normal}
 
+.ev-image-wrap{margin:14px 0 10px}
+.ev-image-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.ev-image-btn{all:unset;display:block;cursor:zoom-in}
+.ev-image{display:block;width:100%;max-height:240px;object-fit:cover;border-radius:10px;
+	border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.ev-image-cap{font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* Lightbox */
+.lightbox{position:fixed;inset:0;z-index:2200;background:rgba(3,8,14,.92);
+	display:none;flex-direction:column}
+.lightbox.open{display:flex}
+.lightbox-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+	border-bottom:1px solid rgba(255,255,255,.08)}
+.lightbox-title{font-size:.85rem;color:rgba(255,255,255,.8)}
+.lightbox-actions{display:flex;align-items:center;gap:8px}
+.lb-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;
+	border-radius:8px;padding:6px 10px;font-family:'Heebo',sans-serif;font-size:.86rem;cursor:pointer}
+.lb-btn:hover{background:rgba(255,255,255,.14)}
+.lightbox-stage{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.lightbox-img{max-width:94vw;max-height:78vh;transform-origin:center center;user-select:none;
+	-webkit-user-drag:none;cursor:grab;transition:transform .12s ease-out}
+.lightbox-img:active{cursor:grabbing}
+.lightbox-cap{padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);font-size:.8rem;color:rgba(255,255,255,.75)}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;
+	width:42px;height:42px;border-radius:99px;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.35);
+	color:#fff;font-size:1.25rem;cursor:pointer}
+.lightbox-nav.prev{left:12px}
+.lightbox-nav.next{right:12px}
+
+@media (max-width:760px){
+	.ev-image{max-height:190px}
+	.lightbox-img{max-width:96vw;max-height:70vh}
+}
+
 /* END */
 .end-slide{display:flex;flex-direction:column;justify-content:center}
 .end-he{font-family:'Frank Ruhl Libre',serif;font-size:1.9rem;font-weight:900;color:#fff;margin-bottom:4px}
@@ -846,6 +880,24 @@ footer{height:58px;background:var(--panel);border-top:1px solid var(--border);
   <button class="nbtn fwd" id="nb" onclick="go(1)">קדימה ←</button>
 </footer>
 
+<div id="lightbox" class="lightbox" aria-hidden="true">
+	<div class="lightbox-top">
+		<div class="lightbox-title" id="lbTitle">Image</div>
+		<div class="lightbox-actions">
+			<button class="lb-btn" id="lbZoomOut" type="button">-</button>
+			<button class="lb-btn" id="lbZoomIn" type="button">+</button>
+			<button class="lb-btn" id="lbReset" type="button">Reset</button>
+			<button class="lb-btn" id="lbClose" type="button">Close</button>
+		</div>
+	</div>
+	<div class="lightbox-stage" id="lbStage">
+		<button class="lightbox-nav prev" id="lbPrev" type="button" aria-label="Previous image">&#10094;</button>
+		<img id="lbImg" class="lightbox-img" alt="" draggable="false">
+		<button class="lightbox-nav next" id="lbNext" type="button" aria-label="Next image">&#10095;</button>
+	</div>
+	<div class="lightbox-cap" id="lbCap"></div>
+</div>
+
 <script>
 // ── GEO COORDINATES [lat, lng]
 const GEO = {
@@ -916,6 +968,9 @@ const S = [
  view:'israel',pins:[{id:'jeru',c:'gold',label:'ירושלים'}]},
 {t:'ev',mood:'happy',yHe:'כ-1000 לפנה"ס',yEn:'c. 1000 BCE',em:'👑',
  tHe:'מלכות ישראל ובית המקדש הראשון',tEn:'Kingdom of Israel & the First Temple',
+ img:'https://upload.wikimedia.org/wikipedia/he/thumb/0/0b/Israel-Judea_map.jpg/960px-Israel-Judea_map.jpg',
+ imgAlt:'Map of Israel and Judea',
+ imgCap:'Map of Israel and Judea',
  bHe:'דוד המלך הפך את <strong>ירושלים</strong> לבירת ממלכת ישראל. בנו שלמה בנה את בית המקדש הראשון, המקום הקדוש ביותר לעם היהודי. הארץ הזו קיבלה שם: <strong>ארץ ישראל.</strong>',
  bEn:'King David made <strong>Jerusalem</strong> the capital of the Kingdom of Israel. His son Solomon built the First Temple, the holiest place for the Jewish people. The land had a name: <strong>the Land of Israel.</strong>',
  view:'israel',pins:[{id:'jeru',c:'gold',label:'ירושלים',pulse:true}],hl:['il']},
@@ -933,6 +988,18 @@ const S = [
  arrows:[{f:'iq',t:'il',c:'gold'}]},
 {t:'ev',mood:'sad',yHe:'70 לספירה',yEn:'70 CE',em:'💔',
  tHe:'חורבן בית המקדש השני',tEn:'Destruction of the Second Temple',
+ images:[
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Rom%2C_Titusbogen%2C_Triumphzug_3.jpg/1920px-Rom%2C_Titusbogen%2C_Triumphzug_3.jpg',
+		 alt:'Relief from the Arch of Titus depicting Roman triumph after the destruction of the Second Temple',
+		 cap:'Relief from the Arch of Titus (Rome), commonly associated with the destruction of the Second Temple'
+	 },
+	 {
+		 src:'https://commons.wikimedia.org/wiki/Special:FilePath/Roman_Empire_Trajan_117AD.png',
+		 alt:'Map of the Roman Empire under Trajan in 117 CE',
+		 cap:'Roman Empire at its largest extent (117 CE)'
+	 }
+ ],
  bHe:'הרומאים פרצו לירושלים, הרסו את בית המקדש השני ופיזרו את העם לכל קצוות העולם. <strong>2,000 שנות גלות החלו.</strong> בכל פסח, יהודים אמרו: "לשנה הבאה בירושלים."',
  bEn:"The Romans stormed Jerusalem, destroyed the Second Temple, and scattered the people across the world. <strong>2,000 years of exile began.</strong> Every Passover, Jews said: 'Next year in Jerusalem.'",
  view:'wide',pins:[{id:'rome',c:'red',label:'רומא / Rome',pulse:true},{id:'jeru',c:'orange',label:'ירושלים'}],
@@ -942,6 +1009,28 @@ const S = [
  view:'israel',pins:[{id:'tlv',c:'gold',label:'תל אביב'}]},
 {t:'ev',mood:'happy',yHe:'1882–1904 / 1904–1914',yEn:'1882–1904 / 1904–1914',em:'🚶',
  tHe:'העלייה הראשונה והשנייה',tEn:'The First and Second Aliyah',
+ images:[
+	 {
+		 src:'https://campus.ort.org.il/pluginfile.php/8965/mod_book/chapter/753/Eliezer%20Ben-Yehuda%20working%20on%20his%20dictionary.jpg',
+		 alt:'Eliezer Ben-Yehuda working on his dictionary',
+		 cap:'Eliezer Ben-Yehuda working on his dictionary'
+	 },
+	 {
+		 src:'https://www.gilihaskin.com/wp-content/uploads/2013/10/FC2_Poaleyzion-w.jpg',
+		 alt:'Poalei Zion historical photo',
+		 cap:'Poalei Zion'
+	 },
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/b/b6/PikiWiki_Israel_5628_Synagogue.jpg',
+		 alt:'Historic synagogue in early Jewish settlement period',
+		 cap:'Historic synagogue in the Land of Israel'
+	 },
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/8/85/PikiWiki_Israel_6699_Herzels_Visit_To_Palestine.jpg',
+		 alt:'Herzl visit to Palestine',
+		 cap:'Herzl visit to Palestine'
+	 }
+ ],
  bHe:'בסוף המאה ה-19, ארץ ישראל הייתה <strong>מדבר, ביצות ושממה</strong> עם מעט תושבים. רק אנשים נועזים ומלאי אמונה בחרו לעזוב הכל ולחזור. <strong>העלייה הראשונה (1882)</strong> הביאה בעיקר יהודים מרוסיה שהקימו כפרים חקלאיים. <strong>העלייה השנייה (1904)</strong> הביאה חלוצים צעירים שניקזו ביצות וייבשו אדמות. אלה לא היו המונים — אלה היו <strong>יחידים אמיצים</strong> שבנו את הבסיס.',
  bEn:'In the late 1800s, the Land of Israel was <strong>desert, swamps, and wasteland</strong> with few inhabitants. Only bold, determined people left everything to return. The <strong>First Aliyah (1882)</strong> brought mainly Jews from Russia who built farming villages. The <strong>Second Aliyah (1904)</strong> brought young pioneers who drained swamps and cultivated land. These were not masses — they were <strong>courageous individuals</strong> who laid the foundation.',
  view:'israel',hl:['il'],pins:[{id:'tlv',c:'gold',label:'תל אביב',pulse:true},{id:'jeru',c:'gold',label:'ירושלים'}]},
@@ -959,6 +1048,23 @@ const S = [
  arrows:[{f:'europe_center',t:'il',c:'gold'}]},
 {t:'ev',mood:'happy',yHe:'1948',yEn:'1948',em:'🎉',
  tHe:'הכרזת עצמאות ישראל',tEn:'Declaration of Israeli Independence',
+ images:[
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/b/bd/UN_Palestine_Partition_Versions_1947.jpg',
+		 alt:'UN Palestine partition map versions, 1947',
+		 cap:'UN Palestine Partition Plan maps (1947)'
+	 },
+	 {
+		 src:'https://ynet-pic1.yit.co.il/cdn-cgi/image/f=auto,w=740,q=75/picserver5/crop_images/2019/09/02/9457247/9457247_0_417_980_552_0_x-large.jpg',
+		 alt:'Israeli Declaration of Independence ceremony',
+		 cap:'Declaration of Independence ceremony, 1948'
+	 },
+	 {
+		 src:'https://lomdim.brainpop.com/files/2020/04/megilat_azmaut.jpg',
+		 alt:'Megilat HaAtzmaut (Declaration of Independence scroll)',
+		 cap:'Megilat HaAtzmaut'
+	 }
+ ],
  bHe:'ב-14 במאי 1948, דוד בן-גוריון הכריז על הקמת מדינת ישראל. <strong>לראשונה מזה 2,000 שנה, לעם היהודי יש מדינה משלו</strong> בארצו ההיסטורית.',
  bEn:'On May 14, 1948, David Ben-Gurion declared the establishment of the State of Israel. <strong>For the first time in 2,000 years, the Jewish people had their own state</strong> in their historical land.',
  view:'israel',hl:['il'],pins:[{id:'tlv',c:'green',label:'תל אביב',pulse:true},{id:'jeru',c:'green',label:'ירושלים',pulse:true}]},
@@ -978,6 +1084,28 @@ const S = [
  arrows:[{f:'eg',t:'il',c:'red'},{f:'jo',t:'il',c:'red'},{f:'sy',t:'il',c:'red'},{f:'lb',t:'il',c:'red'},{f:'iq',t:'il',c:'red'}]},
 {t:'ev',mood:'happy',yHe:'1967',yEn:'1967',em:'🏙️',
  tHe:'מלחמת ששת הימים',tEn:'The Six-Day War',
+ images:[
+	 {
+		 src:'https://www.idi.org.il/media/8675/zanhanim.jpg',
+		 alt:'Israeli paratroopers during the Six-Day War',
+		 cap:'Israeli paratroopers during the Six-Day War'
+	 },
+	 {
+		 src:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4FfWPUDqSiXxtXC11k4NsGf18M2qe3ZUe9g&s',
+		 alt:'Six-Day War historical image',
+		 cap:'Six-Day War historical image'
+	 },
+	 {
+		 src:'https://intelectual.co.il/wp-content/uploads/2020/10/%D7%9E%D7%9C%D7%97%D7%9E%D7%AA-%D7%A9%D7%A9%D7%AA-%D7%94%D7%99%D7%9E%D7%99%D7%9D.jpg',
+		 alt:'Six-Day War archive photo',
+		 cap:'Six-Day War archive photo'
+	 },
+	 {
+		 src:'https://intelectual.co.il/wp-content/uploads/2020/07/%D7%9E%D7%9C%D7%97%D7%9E%D7%AA-%D7%A9%D7%A9%D7%AA-%D7%94%D7%99%D7%9E%D7%99%D7%9D-1.jpg',
+		 alt:'Six-Day War archive photo 2',
+		 cap:'Six-Day War archive photo 2'
+	 }
+ ],
  bHe:'מצרים, ירדן וסוריה התכוננו לתקוף את ישראל. ישראל תקפה ראשונה ובתוך <strong>שישה ימים בלבד</strong> ניצחה את שלושתן. כתוצאה מהמלחמה עברו לשליטת ישראל <strong>רצועת עזה</strong> (שהייתה בידי מצרים) ו<strong>יהודה ושומרון, הגדה המערבית</strong> (שהייתה בידי ירדן), וכן סיני וגולן. <strong>ירושלים התאחדה</strong> תחת שלטון ישראלי. אבל מאות אלפי פלסטינים שגרו באותם שטחים מצאו את עצמם תחת שלטון ישראלי, ורבים חיו ועדיין חיים ב<strong>מחנות פליטים</strong> — שאלה שעדיין לא נפתרה.',
  bEn:'Egypt, Jordan, and Syria prepared to attack Israel. Israel struck first and within <strong>just six days</strong> defeated all three. As a result, Israel gained control of <strong>the Gaza Strip</strong> (previously held by Egypt) and <strong>the West Bank</strong> (previously held by Jordan), plus Sinai and the Golan. <strong>Jerusalem was reunited</strong> under Israeli rule. But hundreds of thousands of Palestinians living in those areas found themselves under Israeli control, and many lived — and still live — in <strong>refugee camps</strong>, a question that remains unresolved.',
  view:'il_jo',
@@ -994,6 +1122,23 @@ const S = [
  arrows:[{f:'il',t:'eg',c:'gold'},{f:'il',t:'sy',c:'gold'},{f:'il',t:'jo',c:'gold'}]},
 {t:'ev',mood:'sad',yHe:'1973',yEn:'1973',em:'🚨',
  tHe:'מלחמת יום הכיפורים',tEn:'The Yom Kippur War',
+ images:[
+	 {
+		 src:'https://storage.bhol.co.il/articles/606037_tumb_800X480.jpeg',
+		 alt:'Yom Kippur War historical image',
+		 cap:'Yom Kippur War historical image'
+	 },
+	 {
+		 src:'https://hope.eretzmuseum.org.il/wp-content/uploads/2023/07/%D7%A6%D7%A0%D7%97%D7%A0%D7%99%D7%9D-%D7%91%D7%AA%D7%A2%D7%9C%D7%AA-%D7%A1%D7%95%D7%90%D7%A5-%D7%9E%D7%9C%D7%97%D7%9E%D7%AA-%D7%99%D7%95%D7%9D-%D7%9B%D7%99%D7%A4%D7%95%D7%A8-1973-1024x682.jpg',
+		 alt:'Paratroopers at the Suez Canal during the Yom Kippur War, 1973',
+		 cap:'Paratroopers at the Suez Canal, 1973'
+	 },
+	 {
+		 src:'https://besacenter.org/wp-content/uploads/2020/09/Egyptian-military-trucks-cross-a-bridge-laid-over-the-Suez-Canal-on-October-7-1973-during-the-Yom-Kippur-War-CIA-public-domain-image-via-Wikipedia-e1600768349911.jpg',
+		 alt:'Egyptian military trucks crossing over the Suez Canal, October 1973',
+		 cap:'Egyptian forces crossing the Suez Canal, October 1973'
+	 }
+ ],
  bHe:'ביום הקדוש ביותר בשנה, מצרים וסוריה תקפו את ישראל בהפתעה. <strong>ישראל עמדה במתקפה, אבל לא לפני שנלחמה קשות.</strong>',
  bEn:'On the holiest day of the Jewish year, Egypt and Syria launched a surprise attack. <strong>Israel held on, but only after fierce fighting.</strong>',
  view:'il_sy',
@@ -1007,6 +1152,23 @@ const S = [
  arrows:[{f:'eg',t:'il',c:'red'},{f:'sy',t:'il',c:'red'}]},
 {t:'ev',mood:'happy',yHe:'1979',yEn:'1979',em:'🤝',
  tHe:'הסכם שלום עם מצרים',tEn:'Peace with Egypt',
+ images:[
+	 {
+		 src:'https://hope.eretzmuseum.org.il/wp-content/uploads/2023/05/RACH-1-1.jpg',
+		 alt:'Israel-Egypt peace agreement historical photo',
+		 cap:'Israel-Egypt peace agreement historical photo'
+	 },
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Sadat_Carter_Begin_handshake_%28cropped%29_-_USNWR.jpg/1280px-Sadat_Carter_Begin_handshake_%28cropped%29_-_USNWR.jpg',
+		 alt:'Sadat, Carter, and Begin handshake',
+		 cap:'Sadat, Carter, and Begin handshake'
+	 },
+	 {
+		 src:'https://img.mako.co.il/2018/02/25/961432_I.jpg',
+		 alt:'Peace with Egypt archival image',
+		 cap:'Peace with Egypt archival image'
+	 }
+ ],
  bHe:'שש שנים אחרי מלחמת יום הכיפורים, ישראל ומצרים חתמו על הסכם שלום. <strong>זה היה הסכם השלום הראשון בין ישראל למדינה ערבית</strong>, והוכיח שאפילו אויבים מרים יכולים להפוך לשכנים.',
  bEn:'Six years after the Yom Kippur War, Israel and Egypt signed a peace treaty. <strong>It was the first peace between Israel and an Arab country</strong>, proving that even bitter enemies can become neighbors.',
  view:'il_eg',hl:['il','eg'],pins:[{id:'il',c:'green',label:'ישראל',pulse:true},{id:'cairo',c:'green',label:'קהיר',pulse:true}]},
@@ -1015,6 +1177,18 @@ const S = [
  view:'il_lb'},
 {t:'ev',mood:'sad',yHe:'1982',yEn:'1982',em:'🏔️',
  tHe:'מלחמת לבנון הראשונה',tEn:'The First Lebanon War',
+ images:[
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/6/62/South_Lebanon_security_zone.svg',
+		 alt:'Map of the South Lebanon security zone',
+		 cap:'South Lebanon security zone map'
+	 },
+	 {
+		 src:'https://ynet-pic1.yit.co.il/PicServer5/2020/05/22/9984681/YE2710338_(1).jpg',
+		 alt:'First Lebanon War archival photo',
+		 cap:'First Lebanon War archival photo'
+	 }
+ ],
  bHe:"ישראל נכנסה ללבנון כדי להילחם במחבלי אש\"ף שתקפו מהגבול. <strong>המלחמה הייתה ארוכה וקשה</strong>, וישראל נשארה בחלק מלבנון שנים רבות.",
  bEn:"Israel entered Lebanon to fight PLO fighters attacking from the border. <strong>The war was long and difficult</strong>, and Israel stayed in parts of Lebanon for many years.",
  view:'il_north',
@@ -1026,6 +1200,18 @@ const S = [
  arrows:[{f:'s_lebanon',t:'north_il',c:'red'},{f:'il',t:'s_lebanon',c:'gold'}]},
 {t:'ev',mood:'happy',yHe:'1991',yEn:'1991',em:'✈️',
  tHe:'עלייה מאתיופיה ומרוסיה',tEn:'Immigration from Ethiopia & Russia',
+ images:[
+	 {
+		 src:'https://upload.wikimedia.org/wikipedia/commons/1/1c/Flickr_-_Government_Press_Office_%28GPO%29_-_P.M._Rabin_with_Russian_Immigrants.jpg',
+		 alt:'Prime Minister Rabin with Russian immigrants',
+		 cap:'Rabin with Russian immigrants'
+	 },
+	 {
+		 src:'https://img.mako.co.il/2008/12/18/etiopia_aliya_c.jpg',
+		 alt:'Aliyah from Ethiopia',
+		 cap:'Aliyah from Ethiopia'
+	 }
+ ],
  bHe:'עשרות אלפי יהודים מאתיופיה ומיליון יהודים מרוסיה עלו לישראל. <strong>ישראל קיבלה אותם בפתיחת לב.</strong> כל יהודי בעולם ידע שיש לו בית.',
  bEn:'Tens of thousands from Ethiopia and a million from Russia immigrated to Israel. <strong>Israel welcomed them warmly.</strong> Every Jew in the world knew they had a home.',
  view:'immigration',
@@ -1067,8 +1253,8 @@ const S = [
  view:'ilgaza',pins:[{id:'gz',c:'red',label:'עזה — תחת חמאס',pulse:true},{id:'wb',c:'orange',label:'גדה — רשות פלסטינית'}]},
 {t:'ev',mood:'sad',yHe:'2014',yEn:'2014',em:'🚀',
  tHe:'מבצע צוק איתן',tEn:'Operation Protective Edge',
- bHe:'חמאס ירה אלפי רקטות על ערי ישראל, ובנה מנהרות תחת הקרקע מעזה לתוך ישראל לצורך פיגועים. <strong>ישראל נכנסה לעזה במבצע קרקעי</strong> כדי להרוס את המנהרות ולעצור את הירי. זה היה המבצע הגדול ביותר בעזה עד אז. <strong>המנהרות האלה הפכו מאוחר יותר לבסיס של טבח ה-7 באוקטובר.</strong>',
- bEn:'Hamas fired thousands of rockets at Israeli cities and built underground tunnels from Gaza into Israel for attacks. <strong>Israel launched a ground operation in Gaza</strong> to destroy the tunnels and stop the rockets. It was the largest operation in Gaza up to that point. <strong>Those tunnels later became the foundation for the October 7 massacre.</strong>',
+ bHe:'חמאס ירה לשטח ישראל רקטות ללא הפסקה. <strong>ישראל פתחה במבצע צוק איתן</strong> כדי לעצור את הירי ולהחזיר שקט לתושבים. לאורך השנים היו כמה מבצעים בין ישראל לחמאס, וצוק איתן היה הגדול שבהם.',
+ bEn:'Hamas fired rockets into Israeli territory without pause. <strong>Israel launched Operation Protective Edge</strong> to stop the rocket fire and restore calm for civilians. Over the years, there were several rounds of operations between Israel and Hamas, and Protective Edge was the largest of them.',
  view:'ilgaza',arrows:[{f:'gz',t:'il',c:'red'}],pins:[{id:'gz',c:'red',label:'עזה',pulse:true}]},
 {t:'ev',mood:'happy',yHe:'2020',yEn:'2020',em:'🌟',
  tHe:'הסכמי אברהם',tEn:'The Abraham Accords',
@@ -1090,13 +1276,13 @@ const S = [
  view:'il_lb',arrows:[{f:'lb',t:'il',c:'red'}],pins:[{id:'haifa',c:'red',label:'חיפה'},{id:'beirut',c:'orange',label:'ביירות'}]},
 {t:'ev',mood:'hope',yHe:'נוב׳ 2023',yEn:'November 2023',em:'💛',
  tHe:'הפסקת אש ראשונה: חטופים חוזרים',tEn:'First Ceasefire: Hostages Return',
- bHe:'לאחר לחץ בינלאומי, חמאס הסכים להפסקת אש קצרה. <strong>חטופים רבים שחזרו הביתה</strong> נחבקו עם משפחות שלא ידעו אם יראו אותם שוב.',
+ bHe:'לאחר לחץ בינלאומי, חמאס הסכים להפסקת אש קצרה. <strong>חטופים רבים שחזרו הביתה</strong> התחבקו עם משפחות שלא ידעו אם יראו אותם שוב.',
  bEn:'After international pressure, Hamas agreed to a short ceasefire. <strong>Many hostages returned home</strong> and were reunited with families who feared they would never see them again.',
  view:'ilgaza',pins:[{id:'il',c:'gold',label:'ישראל',pulse:true}]},
 {t:'ev',mood:'sad',yHe:'נוב׳ 2023',yEn:'November 2023',em:'🚢',
  tHe:"החות'ים תוקפים את ים האדום",tEn:'Houthis Attack the Red Sea',
- bHe:"החות'ים בתימן, הנתמכים על ידי <strong>איראן</strong>, התחילו לתקוף ספינות מסחר בים האדום. <strong>הסחר העולמי נפגע קשות.</strong>",
- bEn:"Yemen's Houthis, backed by <strong>Iran</strong>, began attacking commercial ships in the Red Sea. <strong>Global trade was badly disrupted.</strong>",
+ bHe:"החות'ים בתימן, הנתמכים על ידי <strong>איראן</strong>, התחילו לתקוף ספינות מסחר בים האדום. במקביל, הם השתתפו בירי פעיל על ישראל באמצעות טילים ומל\"טים. <strong>הסחר העולמי נפגע קשות.</strong>",
+ bEn:"Yemen's Houthis, backed by <strong>Iran</strong>, began attacking commercial ships in the Red Sea. At the same time, they actively fired missiles and drones at Israel. <strong>Global trade was badly disrupted.</strong>",
  view:'il_ye',arrows:[{f:'ye',t:'il',c:'red'}],pins:[{id:'ye',c:'red',label:'תימן',pulse:true}]},
 {t:'ev',mood:'sad',yHe:'אפר׳ 2024',yEn:'April 2024',em:'🌙',
  tHe:'איראן תוקפת ישראל ישירות',tEn:'Iran Attacks Israel Directly',
@@ -1145,8 +1331,20 @@ const S = [
  tHe:'ארה"ב וישראל תוקפות איראן מחדש',tEn:'US & Israel Strike Iran Again',
  bHe:'ארה"ב וישראל תקפו שוב את איראן, ומנהיגה נהרג. <strong>איראן השיבה בתקיפה על מדינות המפרץ</strong>, וחיזבאללה חזר לירות על ישראל.',
  bEn:"The US and Israel struck Iran again, killing its leader. <strong>Iran retaliated against Gulf states</strong>, and Hezbollah resumed firing at Israel.",
- view:'il_iran',arrows:[{f:'il',t:'ir',c:'gold'},{f:'ir',t:'uae',c:'red'},{f:'lb',t:'il',c:'red'}],
- pins:[{id:'tehran',c:'red',label:'טהראן',pulse:true}]},
+ view:'il_iran',arrows:[
+	 {f:'il',t:'ir',c:'gold'},
+	 {f:'ir',t:'uae',c:'red'},
+	 {f:'ir',t:'bh',c:'red'},
+	 {f:'ir',t:'sa',c:'red'},
+	 {f:'lb',t:'il',c:'red'}
+ ],
+ pins:[
+	 {id:'tehran',c:'red',label:'טהראן',pulse:true},
+	 {id:'il',c:'gold',label:'ישראל',pulse:true},
+	 {id:'uae',c:'green',label:'איחוד האמירויות',pulse:true},
+	 {id:'bh',c:'green',label:'בחריין',pulse:true},
+	 {id:'sa',c:'green',label:'סעודיה',pulse:true}
+ ]},
 {t:'ev',mood:'hope',yHe:'אפר׳ 2026',yEn:'April 2026',em:'🕊️',
  tHe:'משא ומתן לשקט',tEn:'Negotiations for Quiet',
  bHe:'למרות הלחימה, מתנהל משא ומתן על הפסקת אש. <strong>גם מלחמות מסתיימות. תמיד יש תקווה לשלום.</strong>',
@@ -1305,6 +1503,18 @@ function updateMap(s) {
 // ── PANEL
 function slideNum() { return `<div class="snum">#${cur+1}</div>`; }
 
+function getEventImages(s) {
+	if (Array.isArray(s.images) && s.images.length) return s.images;
+	if (s.img) {
+		return [{
+			src: s.img,
+			alt: s.imgAlt || s.tEn || 'Image',
+			cap: s.imgCap || ''
+		}];
+	}
+	return [];
+}
+
 function buildHTML(s) {
   if (s.t === 'cover') return `
     ${slideNum()}
@@ -1332,8 +1542,19 @@ function buildHTML(s) {
       <div class="mtag">${s.em} ${moodLabel[s.mood]}</div>
       <div class="ev-he">${s.tHe}</div>
       <div class="ev-en">${s.tEn}</div>
-      <div class="body-he">${s.bHe}</div>
+	  <div class="body-he">${s.bHe}</div>
       <div class="body-en">${s.bEn}</div>
+			${(() => {
+				const imgs = getEventImages(s);
+				if (!imgs.length) return '';
+				return `<div class="ev-image-wrap"><div class="ev-image-grid">${imgs.map((im, idx) =>
+					`<button class="ev-image-btn" type="button" data-open-image="1" data-img-index="${idx}" aria-label="Open image ${idx + 1}">
+						<img class="ev-image" src="${im.src}" alt="${im.alt || s.tEn}" loading="lazy" referrerpolicy="no-referrer">
+						${im.cap ? `<div class="ev-image-cap">${im.cap}</div>` : ''}
+					</button>`
+				).join('')}</div></div>`;
+			})()}
+     
     </div>`;
   if (s.t === 'end') return `
     ${slideNum()}
@@ -1359,8 +1580,157 @@ function renderPanel(idx) {
   }, 260);
 }
 
+const lightboxState = {
+	open: false,
+	images: [],
+	idx: 0,
+	scale: 1,
+	x: 0,
+	y: 0,
+	dragging: false,
+	startX: 0,
+	startY: 0,
+};
+
+function applyLightboxTransform() {
+	const img = document.getElementById('lbImg');
+	if (!img) return;
+	img.style.transform = `translate(${lightboxState.x}px, ${lightboxState.y}px) scale(${lightboxState.scale})`;
+}
+
+function resetLightboxTransform() {
+	lightboxState.scale = 1;
+	lightboxState.x = 0;
+	lightboxState.y = 0;
+	applyLightboxTransform();
+}
+
+function zoomLightbox(delta) {
+	const next = Math.max(1, Math.min(5, lightboxState.scale + delta));
+	lightboxState.scale = Number(next.toFixed(2));
+	if (lightboxState.scale === 1) {
+		lightboxState.x = 0;
+		lightboxState.y = 0;
+	}
+	applyLightboxTransform();
+}
+
+function renderLightboxImage() {
+	const item = lightboxState.images[lightboxState.idx];
+	if (!item) return;
+	const img = document.getElementById('lbImg');
+	const cap = document.getElementById('lbCap');
+	const title = document.getElementById('lbTitle');
+	img.src = item.src;
+	img.alt = item.alt || 'Image';
+	cap.innerHTML = item.cap || '';
+	title.textContent = `Image ${lightboxState.idx + 1} / ${lightboxState.images.length}`;
+	document.getElementById('lbPrev').style.display = lightboxState.images.length > 1 ? 'flex' : 'none';
+	document.getElementById('lbNext').style.display = lightboxState.images.length > 1 ? 'flex' : 'none';
+	resetLightboxTransform();
+}
+
+function openLightbox(images, startIdx) {
+	if (!images || !images.length) return;
+	lightboxState.images = images;
+	lightboxState.idx = Math.max(0, Math.min(startIdx || 0, images.length - 1));
+	lightboxState.open = true;
+	const lb = document.getElementById('lightbox');
+	lb.classList.add('open');
+	lb.setAttribute('aria-hidden', 'false');
+	renderLightboxImage();
+}
+
+function closeLightbox() {
+	lightboxState.open = false;
+	const lb = document.getElementById('lightbox');
+	lb.classList.remove('open');
+	lb.setAttribute('aria-hidden', 'true');
+}
+
+function nextLightbox(step) {
+	if (!lightboxState.images.length) return;
+	const total = lightboxState.images.length;
+	lightboxState.idx = (lightboxState.idx + step + total) % total;
+	renderLightboxImage();
+}
+
+function initLightbox() {
+	const pc = document.getElementById('pc');
+	const lb = document.getElementById('lightbox');
+	const img = document.getElementById('lbImg');
+	const stage = document.getElementById('lbStage');
+
+	pc.addEventListener('click', (e) => {
+		const btn = e.target.closest('[data-open-image="1"]');
+		if (!btn) return;
+		const images = getEventImages(S[cur]);
+		const idx = Number(btn.getAttribute('data-img-index') || '0');
+		openLightbox(images, idx);
+	});
+
+	document.getElementById('lbClose').addEventListener('click', closeLightbox);
+	document.getElementById('lbZoomIn').addEventListener('click', () => zoomLightbox(0.25));
+	document.getElementById('lbZoomOut').addEventListener('click', () => zoomLightbox(-0.25));
+	document.getElementById('lbReset').addEventListener('click', resetLightboxTransform);
+	document.getElementById('lbPrev').addEventListener('click', () => nextLightbox(-1));
+	document.getElementById('lbNext').addEventListener('click', () => nextLightbox(1));
+
+	lb.addEventListener('click', (e) => {
+		if (e.target === lb) closeLightbox();
+	});
+
+	stage.addEventListener('wheel', (e) => {
+		if (!lightboxState.open) return;
+		e.preventDefault();
+		zoomLightbox(e.deltaY < 0 ? 0.15 : -0.15);
+	}, { passive: false });
+
+	img.addEventListener('mousedown', (e) => {
+		if (!lightboxState.open || lightboxState.scale <= 1) return;
+		lightboxState.dragging = true;
+		lightboxState.startX = e.clientX - lightboxState.x;
+		lightboxState.startY = e.clientY - lightboxState.y;
+	});
+
+	window.addEventListener('mousemove', (e) => {
+		if (!lightboxState.dragging) return;
+		lightboxState.x = e.clientX - lightboxState.startX;
+		lightboxState.y = e.clientY - lightboxState.startY;
+		applyLightboxTransform();
+	});
+
+	window.addEventListener('mouseup', () => {
+		lightboxState.dragging = false;
+	});
+}
+
 // ── NAV
 let cur = 0;
+
+function clampSlideIndex(i) {
+	if (!Number.isFinite(i)) return 0;
+	return Math.max(0, Math.min(S.length - 1, i));
+}
+
+function getSlideIndexFromQuery() {
+	const params = new URLSearchParams(window.location.search);
+	const raw = params.get('slide') ?? params.get('s');
+	if (!raw) return null;
+	const oneBased = Number(raw);
+	if (!Number.isFinite(oneBased)) return null;
+	return clampSlideIndex(Math.trunc(oneBased) - 1);
+}
+
+function syncSlideQuery() {
+	const params = new URLSearchParams(window.location.search);
+	const currentValue = String(cur + 1);
+	if (params.get('slide') === currentValue) return;
+	params.set('slide', currentValue);
+	params.delete('s');
+	const next = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+	window.history.replaceState({ slide: cur + 1 }, '', next);
+}
 
 function go(dir) {
   const n = cur + dir;
@@ -1378,6 +1748,7 @@ function refresh() {
   renderPanel(cur);
   updateMap(S[cur]);
   buildDots();
+	syncSlideQuery();
 }
 
 function buildDots() {
@@ -1393,6 +1764,14 @@ function buildDots() {
 }
 
 document.addEventListener('keydown', e => {
+	if (lightboxState.open) {
+		if (e.key === 'Escape') { closeLightbox(); return; }
+		if (e.key === 'ArrowLeft') { nextLightbox(1); return; }
+		if (e.key === 'ArrowRight') { nextLightbox(-1); return; }
+		if (e.key === '+' || e.key === '=') { zoomLightbox(0.2); return; }
+		if (e.key === '-') { zoomLightbox(-0.2); return; }
+		return;
+	}
   if (e.key==='ArrowLeft'||e.key==='ArrowDown') go(1);
   if (e.key==='ArrowRight'||e.key==='ArrowUp') go(-1);
 });
@@ -1400,6 +1779,18 @@ document.addEventListener('keydown', e => {
 // Init — defer to ensure map container has dimensions
 window.addEventListener('load', function() {
   map.invalidateSize();
+	initLightbox();
+
+	const fromQuery = getSlideIndexFromQuery();
+	if (fromQuery !== null) cur = fromQuery;
+
+	window.addEventListener('popstate', () => {
+		const idx = getSlideIndexFromQuery();
+		if (idx === null || idx === cur) return;
+		cur = idx;
+		refresh();
+	});
+
   refresh();
 });
 </script>
